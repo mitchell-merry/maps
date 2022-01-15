@@ -1,14 +1,21 @@
+const dataset = "LVP_SUB";
 
+const propName = "SSC_NAME_2016";
+// ADM1_TH
+// admin2Name_en
+// admin1Name_en
+// SSC_NAME_2016
 
-d3.json('http://localhost:3000/LVP_SUB.geojson').then((data) => {
+d3.json(`http://localhost:3000/${dataset}.geojson`).then((data) => {
     // Fix data!!! Winding something or other. Idk I took this from someone named Andrew. Thanks Andrew.
     data.features = data.features.map((f) => turf.rewind(f,{reverse:true}));
 
     // Get the names, i.e. the quiz.
-    let names = data.features.map(f => f.properties["SSC_NAME_2016"]);
+    let names = data.features.map(f => f.properties[propName]);
     let currentGuess = undefined;
 
-    const width = 800, height = 800;
+    const width = 1200, height = 800;
+    // var projection = d3.geoMercator();
     var projection = d3.geoEquirectangular();
     var geoGenerator = d3.geoPath().projection(projection);
     projection.fitSize([width, height], data);
@@ -24,7 +31,7 @@ d3.json('http://localhost:3000/LVP_SUB.geojson').then((data) => {
     }
 
     const onClick = (e) => {
-        const guess = e.path[0].__data__.properties["SSC_NAME_2016"];
+        const guess = e.path[0].__data__.properties[propName];
         
         if(guess === currentGuess) generateNewGuess();
         else console.log("WRONG, FUCKER! THAT WAS " + guess);
@@ -39,6 +46,7 @@ d3.json('http://localhost:3000/LVP_SUB.geojson').then((data) => {
 
     const handleZoom = (e) => g.attr('transform', e.transform);
     svg.call(d3.zoom().on('zoom', handleZoom));
+    svg.on("dblclick.zoom", null)
 
     generateNewGuess();
 });

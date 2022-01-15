@@ -1,15 +1,39 @@
+/* #eee, #000, #ddd, #aaa, #ccc */
+/* BLACKPINK: rgb(235, 95, 153), rgb(233, 101, 156), #000, rgb(200, 102, 155), #fff */
+/* map: rgb(79, 151, 211), #000, rgb(7, 163, 54), rgb(5, 202, 64), #ccc*/
+/* 
+    rgb(173, 230, 180) 
+    rgb(79, 151, 211)
+    rgb(0, 179, 134)
+*/
+:root {
+    --map-back: #eee;
+    --map-border: #000;
+    --map-object-fill: #ddd;
+    --map-object-stroke: #aaa;
+    --map-object-hover-fill: #ccc;
+
+    /* 
+    --map-object-fill-correct 
+    --map-object-fill-one
+    --map-object-fill-two
+    --map-object-fill-wrong
+    
+    */
+}
+
 svg {
-    border: 1px solid black;
-    background-color: #eee;
+    border: 1px solid var(--map-border);
+    background-color: var(--map-back);
 }
 
 svg g path {
-    fill: #ddd;
-    stroke: #aaa;
+    fill: var(--map-object-fill);
+    stroke: var(--map-object-stroke);
     stroke-width: 1px;
     vector-effect: non-scaling-stroke;
 }
 
 svg g path:hover {
-    fill: #ccc;
+    fill: var(--map-object-hover-fill);
 }

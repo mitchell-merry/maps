@@ -20,8 +20,10 @@ const generateNewGuess = () => {
 }
 
 const onClick = (e) => {
+    // Only left clicks count as clicks.
+    if(e.button !== 0) return;
+
     const guess = e.path[0].__data__.properties[propName];
-    
     if(guess === currentItemName) {
 
         // Update class of path
@@ -47,8 +49,8 @@ const onClick = (e) => {
 
             let flash = () => currentItemElement.classList.toggle(GUESS_CLASS_NAMES[3]);
             flash();
-            flashingInterval = setInterval(flash, flashTime);
 
+            flashingInterval = setInterval(flash, flashTime);
         }
     }
 }
@@ -80,7 +82,12 @@ const setupQuiz = (geoJSON) => {
         .on('mousedown', onClick);
 
     // Handle zooming and panning
-    svg.call(d3.zoom().on('zoom', (e) => g.attr('transform', e.transform)));
+    svg.call(d3.zoom()
+        .on('zoom', (e) => g.attr('transform', e.transform))
+        // Only zoom with middle mouse, only pan with left click. Not sure if this is wanted
+        .filter((e) => e.type === "wheel" ? e.button === 0 : e.button === 1)
+    );
+
     svg.on("dblclick.zoom", null) // no double click to zoom
 
     // Start the quiz with the first guess

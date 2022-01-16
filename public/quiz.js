@@ -56,6 +56,20 @@ const generateNewGuess = () => {
     }
 };
 
+const updateTooltipPosition = (e) => {
+    let x = e.clientX || e.sourceEvent.clientX;
+    let y = (e.clientY || e.sourceEvent.clientY) + 30;
+
+    if(y < 0) y = -80;
+    
+    let { width, height } = tooltip.node().getBoundingClientRect();
+
+    if(x + width + 10 > WIDTH) x = WIDTH - width - 10;
+    if(y + height > HEIGHT) y = HEIGHT - height;
+
+    tooltip.attr('x', x).attr('y', y);
+}
+
 const onClick = (e) => {
     // Only left clicks count as clicks.
     if(e.button !== 0) return;
@@ -71,6 +85,7 @@ const onClick = (e) => {
         clearInterval(flashingInterval);
 
         generateNewGuess();
+        updateTooltipPosition(e);
     }
     // Clicked on an element that has already been selected
     else if(!remainingItems.includes(guess)) {
@@ -124,10 +139,7 @@ const resetQuiz = () => {
 }
 
 const onMouseMove = (e) => {
-    let x = e.clientX || e.sourceEvent.clientX;
-    let y = e.clientY || e.sourceEvent.clientY;
-    if(y < 0) y = -80;
-    tooltip.attr('x', x).attr('y', y+30); 
+    updateTooltipPosition(e);
 };
 
 const onKeyDown = (e) => {

@@ -1,7 +1,7 @@
 const WIDTH = 800, HEIGHT = 800;
 const SHOWTIME = false;
 const GUESS_CLASS_NAMES = ["guess-correct", "guess-one", "guess-two", "guess-wrong"];
-const DATASET = "LVP_SUB";
+const DATASET = "PAR_SUB";
 
 // UI & Page elements
 let svg, g, tooltip, guessText, timeText;
@@ -16,7 +16,7 @@ let currentItemElement = undefined;
 let incorrectAttempts = 0;
 let remainingItems = [];
 let guessedItems = 0;
-let incorrectGuessesTotal = 0;
+let incorrectGuessesTotal = 0, guessCount = 0;
 let isQuizComplete = false;
 
 // Time
@@ -31,7 +31,8 @@ let flashTime = 1000;
 const quizComplete = () => {
     clearInterval(timeInterval);
     isQuizComplete = true;
-    if(!SHOWTIME) console.log(formatTime(Date.now() - startTime, true))
+    if(SHOWTIME) console.log(formatTime(Date.now() - startTime, true))
+    console.log(Math.floor((1-incorrectGuessesTotal/guessCount)*100));
     
     // Clear UI
     guessText.text('');
@@ -82,6 +83,7 @@ const onClick = (e) => {
         incorrectAttempts = 0;
         flashingAnswer = false;
         guessedItems++;
+        guessCount++;
         clearInterval(flashingInterval);
 
         generateNewGuess();
@@ -94,7 +96,10 @@ const onClick = (e) => {
     // Incorrect guess
     else {
         console.log("WRONG, FUCKER! THAT WAS " + guess);
-        currentItemElement = Array.from(svg.selectAll("path")._groups[0]).find(f => f.__data__.properties[propName] === currentItemName);
+        currentItemElement = svg.selectAll("path").nodes().find(f => f.__data__.properties[propName] === currentItemName);
+        
+        guessCount++;
+        incorrectGuessesTotal++;
 
         // Increment failed attempts
         if(incorrectAttempts < 4) incorrectAttempts++;
@@ -128,7 +133,7 @@ const resetQuiz = () => {
     
 
     // Clear the guess classes
-    svg.selectAll("path")._groups[0].forEach(f => f.classList.remove(...GUESS_CLASS_NAMES));
+    svg.selectAll("path").nodes().forEach(f => f.classList.remove(...GUESS_CLASS_NAMES));
 
     currentItemName = currentItemElement = undefined;
     incorrectAttempts = incorrectGuessesTotal = guessedItems = 0;

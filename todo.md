@@ -5,7 +5,8 @@
 - [ ] Better UI
 - [x] Three incorrect = gives answer
 - [x] Keep coloured in, scale colour based on guess
-- [ ] Track score & end game
+- [x] Track score
+- [ ] End game
 - [x] Time
 - [ ] Window scales to screen size
 - [ ] Fullscreen

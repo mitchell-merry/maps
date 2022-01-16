@@ -126,6 +126,7 @@ const setupQuiz = (geoJSON) => {
 
     svg.on("dblclick.zoom", null) // no double click to zoom
     svg.on("mousemove", onMouseMove);
+    svg.on("mouseout", (e) => tooltip.attr('x', -50).attr('y', -50));
     d3.select("body").on("keydown", onKeyDown);
 
     // Reset quiz (start it)

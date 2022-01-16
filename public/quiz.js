@@ -1,6 +1,6 @@
 const WIDTH = 800, HEIGHT = 800;
 const GUESS_CLASS_NAMES = ["guess-correct", "guess-one", "guess-two", "guess-wrong"];
-const DATASET = "RPK_PRECINCTS";
+const DATASET = "KH_DISTRICTS";
 
 // UI & Page elements
 let svg, g, tooltip, guessText;
@@ -82,7 +82,12 @@ const resetQuiz = () => {
     generateNewGuess();
 }
 
-const onMouseMove = (e) => { tooltip.attr('x', e.clientX).attr('y', e.clientY+30); };
+const onMouseMove = (e) => {
+    let x = e.clientX || e.sourceEvent.clientX;
+    let y = e.clientY || e.sourceEvent.clientY;
+    if(y < 0) y = -80;
+    tooltip.attr('x', x).attr('y', y+30); 
+};
 
 const onKeyDown = (e) => {
     // Alt+R
@@ -119,7 +124,10 @@ const setupQuiz = (geoJSON) => {
 
     // Handle zooming and panning
     svg.call(d3.zoom()
-        .on('zoom', (e) => g.attr('transform', e.transform))
+        .on('zoom', (e) => {
+            g.attr('transform', e.transform);
+            onMouseMove(e);
+        })
         // Only zoom with middle mouse, only pan with left click. Not sure if this is wanted
         .filter((e) => e.type === "wheel" ? e.button === 0 : e.button === 1)
     );

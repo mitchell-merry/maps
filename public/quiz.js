@@ -1,6 +1,7 @@
 const WIDTH = 800, HEIGHT = 800;
+const SHOWTIME = false;
 const GUESS_CLASS_NAMES = ["guess-correct", "guess-one", "guess-two", "guess-wrong"];
-const DATASET = "KH_PNP_DISTRICTS";
+const DATASET = "LVP_SUB";
 
 // UI & Page elements
 let svg, g, tooltip, guessText, timeText;
@@ -30,7 +31,7 @@ let flashTime = 1000;
 const quizComplete = () => {
     clearInterval(timeInterval);
     isQuizComplete = true;
-    console.log(formatTime(Date.now() - startTime, true))
+    if(!SHOWTIME) console.log(formatTime(Date.now() - startTime, true))
     
     // Clear UI
     guessText.text('');
@@ -101,11 +102,14 @@ const resetQuiz = () => {
     
     clearInterval(timeInterval);
     startTime = Date.now();
-    let updateTime = () => {
-        timeText.text(formatTime(Date.now() - startTime, false));
-    };
-    updateTime();
-    timeInterval = setInterval(updateTime, 1000);
+    if(SHOWTIME) {
+        let updateTime = () => {
+            timeText.text(formatTime(Date.now() - startTime, false));
+        };
+    
+        updateTime();
+        timeInterval = setInterval(updateTime, 1000);
+    }
     
 
     // Clear the guess classes
@@ -141,7 +145,7 @@ const setupQuiz = (geoJSON) => {
     allItems  = geoJSON.features.map(f => f.properties[propName]);
     
     // Do math
-    var projection = geoJSON.metadata.projection === "mercator" ? d3.geoMercator : d3.geoEquirectangular();
+    var projection = geoJSON.metadata.projection === "mercator" ? d3.geoMercator() : d3.geoEquirectangular();
     var geoGenerator = d3.geoPath().projection(projection);
     projection.fitSize([WIDTH, HEIGHT], geoJSON);
 
@@ -149,8 +153,8 @@ const setupQuiz = (geoJSON) => {
     svg = d3.select("#map").append("svg").attr("width", WIDTH).attr("height", HEIGHT);
     g = svg.append("g");
     guessText = svg.append("text").attr('id', 'guess-text').attr('x', 50).attr('y', 50);
-    tooltip = svg.append("text").attr('id', 'tooltip');
-    timeText = svg.append("text").attr('id', 'time-text').attr('x', WIDTH-80).attr('y', 50).text("0:00");
+    tooltip = svg.append("text").attr('id', 'tooltip').attr('y', -160);
+    timeText = svg.append("text").attr('id', 'time-text').attr('x', WIDTH-80).attr('y', 50);
 
     // Elements
     g.selectAll("path")
@@ -172,7 +176,7 @@ const setupQuiz = (geoJSON) => {
 
     svg.on("dblclick.zoom", null) // no double click to zoom
     svg.on("mousemove", onMouseMove);
-    svg.on("mouseout", (e) => tooltip.attr('x', -50).attr('y', -50));
+    svg.on("mouseout", (e) => tooltip.attr('x', -50).attr('y', -150));
     d3.select("body").on("keydown", onKeyDown);
 
     // Reset quiz (start it)

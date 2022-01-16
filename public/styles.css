@@ -19,6 +19,11 @@
     --map-object-fill-wrong: red;
 }
 
+#quiz {
+    width: 100%;
+    height: 100%;
+}
+
 svg {
     border: 1px solid var(--map-border);
     background-color: var(--map-back);
@@ -49,4 +54,7 @@ svg g path:hover {
 
 .guess-wrong {
     fill: var(--map-object-fill-wrong) !important;
+}
+#tooltip, #time-text, #guess-text {
+    user-select: none;
 }

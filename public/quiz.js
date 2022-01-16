@@ -1,7 +1,7 @@
-const WIDTH = 800, HEIGHT = 800;
+let WIDTH = 800, HEIGHT = 800;
 const SHOWTIME = false;
 const GUESS_CLASS_NAMES = ["guess-correct", "guess-one", "guess-two", "guess-wrong"];
-const DATASET = "PAR_SUB";
+const DATASET = "LVP_SUB";
 
 // UI & Page elements
 let svg, g, tooltip, guessText, timeText;
@@ -9,6 +9,7 @@ let svg, g, tooltip, guessText, timeText;
 // Quiz Data
 let propName = undefined;
 let allItems = [];
+let fullscreen = false;
 
 // Current quiz attempt info
 let currentItemName = undefined;
@@ -69,6 +70,13 @@ const updateTooltipPosition = (e) => {
     if(y + height > HEIGHT) y = HEIGHT - height;
 
     tooltip.attr('x', x).attr('y', y);
+}
+
+const updateSize = (width, height) => {
+    if(!svg) return;
+
+    WIDTH = width, HEIGHT = height;
+    svg.attr("width", width).attr("height", height);
 }
 
 const onClick = (e) => {
@@ -150,10 +158,23 @@ const onMouseMove = (e) => {
 const onKeyDown = (e) => {
     // Alt+R
     if(e.altKey && e.keyCode === 82) resetQuiz();
+    else if(e.keyCode === 70) {
+        if(fullscreen) updateSize(800, 800);
+        else updateSize(quiz.node().getBoundingClientRect().width, quiz.node().getBoundingClientRect().height);
+
+        fullscreen = !fullscreen;
+    }
 };
+
+window.onresize = (e) => {
+    if(!svg || !quiz) return;
+    
+    if(fullscreen) updateSize(quiz.node().getBoundingClientRect().width, quiz.node().getBoundingClientRect().height)
+}
 
 /* Initialise quiz with geoJSON data */
 const setupQuiz = (geoJSON) => {
+    
     // Fix data!!! Winding something or other. Idk I took this from someone named Andrew. Thanks Andrew.
     geoJSON.features = geoJSON.features.map((f) => turf.rewind(f,{reverse:true}));
 
@@ -167,7 +188,8 @@ const setupQuiz = (geoJSON) => {
     projection.fitSize([WIDTH, HEIGHT], geoJSON);
 
     // Setup the svg element
-    svg = d3.select("#map").append("svg").attr("width", WIDTH).attr("height", HEIGHT);
+    quiz = d3.select("#quiz");
+    svg = quiz.append("svg").attr("width", WIDTH).attr("height", HEIGHT);
     g = svg.append("g");
     guessText = svg.append("text").attr('id', 'guess-text').attr('x', 50).attr('y', 50);
     tooltip = svg.append("text").attr('id', 'tooltip').attr('y', -160);

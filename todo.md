@@ -8,8 +8,7 @@
 - [x] Track score
 - [ ] End game
 - [x] Time
-- [ ] Window scales to screen size
-- [ ] Fullscreen
+- [x] Fullscreen
 
 ### Mid-to-long term
 - [ ] Different mode support

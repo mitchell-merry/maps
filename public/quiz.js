@@ -6,8 +6,8 @@ const DATASET = "RPK_PRECINCTS";
 let svg, g, tooltip, guessText;
 
 let propName = undefined;
-let items = [];
-let maxItems = 0;
+let allItems = [];
+let remainingItems = [];
 let guessedItems = 0;
 let incorrectGuessesTotal = 0;
 
@@ -20,13 +20,13 @@ let flashingInterval = null;
 let flashTime = 1000;
 
 const generateNewGuess = () => {
-    currentItemName = items[Math.floor(Math.random()*items.length)];
-    let clickString = `${guessedItems}/${maxItems} Click on ${currentItemName}`;
-    if(maxItems === guessedItems) clickString = "";
+    currentItemName = remainingItems[Math.floor(Math.random()*remainingItems.length)];
+    let clickString = `${guessedItems}/${allItems.length} Click on ${currentItemName}`;
+    if(allItems.length === guessedItems) clickString = "";
     guessText.text(clickString);
     tooltip.text(clickString);
-    items = items.filter(i => i !== currentItemName);
-}
+    remainingItems = remainingItems.filter(i => i !== currentItemName);
+};
 
 const onClick = (e) => {
     // Only left clicks count as clicks.
@@ -45,13 +45,13 @@ const onClick = (e) => {
         generateNewGuess();
     }
     // Clicked on an element that has already been selected
-    else if(!items.includes(guess)) {
+    else if(!remainingItems.includes(guess)) {
         console.log("That's " + guess);
     }
     // Incorrect guess
     else {
         console.log("WRONG, FUCKER! THAT WAS " + guess);
-        currentItemElement = Array.from(d3.select("#map svg").selectAll("path")._groups[0]).find(f => f.__data__.properties[propName] === currentItemName);
+        currentItemElement = Array.from(svg.selectAll("path")._groups[0]).find(f => f.__data__.properties[propName] === currentItemName);
 
         // Increment failed attempts
         if(incorrectAttempts < 4) incorrectAttempts++;
@@ -66,9 +66,28 @@ const onClick = (e) => {
             flashingInterval = setInterval(flash, flashTime);
         }
     }
+};
+
+const resetQuiz = () => {
+    clearInterval(flashingInterval);
+    flashingAnswer = false;
+
+    currentItemName = currentItemElement = undefined;
+    incorrectAttempts = incorrectGuessesTotal = guessedItems = 0;
+    remainingItems = [...allItems];
+
+    // Clear the guess classes
+    svg.selectAll("path")._groups[0].forEach(f => f.classList.remove(...GUESS_CLASS_NAMES));
+
+    generateNewGuess();
 }
 
-const onMouseMove = (e) => { tooltip.attr('x', e.clientX).attr('y', e.clientY+30); }
+const onMouseMove = (e) => { tooltip.attr('x', e.clientX).attr('y', e.clientY+30); };
+
+const onKeyDown = (e) => {
+    // Alt+R
+    if(e.altKey && e.keyCode === 82) resetQuiz();
+};
 
 /* Initialise quiz with geoJSON data */
 const setupQuiz = (geoJSON) => {
@@ -77,9 +96,7 @@ const setupQuiz = (geoJSON) => {
 
     // Set the propName and items
     propName = geoJSON.metadata.propName;
-    items = geoJSON.features.map(f => f.properties[propName]);
-    maxItems = items.length;
-    guessedItems = 0;
+    allItems  = geoJSON.features.map(f => f.properties[propName]);
     
     // Do math
     var projection = geoJSON.metadata.projection === "mercator" ? d3.geoMercator : d3.geoEquirectangular();
@@ -109,9 +126,10 @@ const setupQuiz = (geoJSON) => {
 
     svg.on("dblclick.zoom", null) // no double click to zoom
     svg.on("mousemove", onMouseMove);
+    d3.select("body").on("keydown", onKeyDown);
 
-    // Start the quiz with the first guess
-    generateNewGuess();
+    // Reset quiz (start it)
+    resetQuiz();
 };
 
 // Get dataset and setup quiz

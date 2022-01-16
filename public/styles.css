@@ -11,15 +11,12 @@
     --map-border: #000;
     --map-object-fill: #ddd;
     --map-object-stroke: #aaa;
-    --map-object-hover-fill: #ccc;
+    --map-object-hover-fill: rgb(204, 204, 204);
 
-    /* 
-    --map-object-fill-correct 
-    --map-object-fill-one
-    --map-object-fill-two
-    --map-object-fill-wrong
-    
-    */
+    --map-object-fill-correct: green;
+    --map-object-fill-one: yellow;
+    --map-object-fill-two: orange;
+    --map-object-fill-wrong: red;
 }
 
 svg {
@@ -36,4 +33,20 @@ svg g path {
 
 svg g path:hover {
     fill: var(--map-object-hover-fill);
+}
+
+.guess-correct {
+    fill: var(--map-object-fill-correct) !important;
+}
+
+.guess-one {
+    fill: var(--map-object-fill-one) !important;
+}
+
+.guess-two {
+    fill: var(--map-object-fill-two) !important;
+}
+
+.guess-wrong {
+    fill: var(--map-object-fill-wrong) !important;
 }

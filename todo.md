@@ -6,7 +6,7 @@
 - [x] Three incorrect = gives answer
 - [x] Keep coloured in, scale colour based on guess
 - [ ] Track score & end game
-- [ ] Time
+- [x] Time
 - [ ] Window scales to screen size
 - [ ] Fullscreen
 

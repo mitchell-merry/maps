@@ -1,31 +1,58 @@
 const WIDTH = 800, HEIGHT = 800;
 const GUESS_CLASS_NAMES = ["guess-correct", "guess-one", "guess-two", "guess-wrong"];
-const DATASET = "KH_DISTRICTS";
+const DATASET = "KH_PNP_DISTRICTS";
 
 // UI & Page elements
-let svg, g, tooltip, guessText;
+let svg, g, tooltip, guessText, timeText;
 
+// Quiz Data
 let propName = undefined;
 let allItems = [];
-let remainingItems = [];
-let guessedItems = 0;
-let incorrectGuessesTotal = 0;
 
+// Current quiz attempt info
 let currentItemName = undefined;
 let currentItemElement = undefined;
 let incorrectAttempts = 0;
+let remainingItems = [];
+let guessedItems = 0;
+let incorrectGuessesTotal = 0;
+let isQuizComplete = false;
 
+// Time
+let startTime = 0;
+let timeInterval = null;
+
+// Flashing
 let flashingAnswer = false;
 let flashingInterval = null;
 let flashTime = 1000;
 
+const quizComplete = () => {
+    clearInterval(timeInterval);
+    isQuizComplete = true;
+    console.log(formatTime(Date.now() - startTime, true))
+    
+    // Clear UI
+    guessText.text('');
+    tooltip.text('');
+}
+
 const generateNewGuess = () => {
-    currentItemName = remainingItems[Math.floor(Math.random()*remainingItems.length)];
-    let clickString = `${guessedItems}/${allItems.length} Click on ${currentItemName}`;
-    if(allItems.length === guessedItems) clickString = "";
-    guessText.text(clickString);
-    tooltip.text(clickString);
-    remainingItems = remainingItems.filter(i => i !== currentItemName);
+    // Complete
+    if(remainingItems.length === 0) quizComplete();
+    // Not complete
+    else {
+        // Generate the next item
+        currentItemName = remainingItems[Math.floor(Math.random()*remainingItems.length)];
+        
+        // Update UI
+        let clickString = `${guessedItems}/${allItems.length} Click on ${currentItemName}`;
+        guessText.text(clickString);
+        tooltip.text(clickString);
+        
+        // Remove the chosen item
+        remainingItems = remainingItems.filter(i => i !== currentItemName);
+    }
 };
 
 const onClick = (e) => {
@@ -71,13 +98,23 @@ const onClick = (e) => {
 const resetQuiz = () => {
     clearInterval(flashingInterval);
     flashingAnswer = false;
+    
+    clearInterval(timeInterval);
+    startTime = Date.now();
+    let updateTime = () => {
+        timeText.text(formatTime(Date.now() - startTime, false));
+    };
+    updateTime();
+    timeInterval = setInterval(updateTime, 1000);
+    
+
+    // Clear the guess classes
+    svg.selectAll("path")._groups[0].forEach(f => f.classList.remove(...GUESS_CLASS_NAMES));
 
     currentItemName = currentItemElement = undefined;
     incorrectAttempts = incorrectGuessesTotal = guessedItems = 0;
     remainingItems = [...allItems];
-
-    // Clear the guess classes
-    svg.selectAll("path")._groups[0].forEach(f => f.classList.remove(...GUESS_CLASS_NAMES));
+    isQuizComplete = false;
 
     generateNewGuess();
 }
@@ -113,6 +150,7 @@ const setupQuiz = (geoJSON) => {
     g = svg.append("g");
     guessText = svg.append("text").attr('id', 'guess-text').attr('x', 50).attr('y', 50);
     tooltip = svg.append("text").attr('id', 'tooltip');
+    timeText = svg.append("text").attr('id', 'time-text').attr('x', WIDTH-80).attr('y', 50).text("0:00");
 
     // Elements
     g.selectAll("path")
@@ -143,3 +181,15 @@ const setupQuiz = (geoJSON) => {
 
 // Get dataset and setup quiz
 d3.json(`http://localhost:3000/${DATASET}.geojson`).then(setupQuiz);
+
+// Helper functions
+function formatTime(ms, includeMillis=false) {
+    let seconds = Math.floor((ms / 1000) % 60);
+    let minutes = Math.floor((ms / 1000 / 60));
+    ms = ms % 1000;
+  
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+    ms = (ms < 10) ? "00" + ms : (ms < 100 ? "0" + ms : ms); 
+
+    return minutes + ":" + seconds + (includeMillis ? `.${ms%1000}` : '');
+  }

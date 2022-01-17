@@ -55,6 +55,13 @@ svg g path:hover {
 .guess-wrong {
     fill: var(--map-object-fill-wrong) !important;
 }
+
 #tooltip, #time-text, #guess-text {
     user-select: none;
+}
+
+.element-label {
+    font-size: 12px;
+    cursor: default;
+    pointer-events: none;
 }

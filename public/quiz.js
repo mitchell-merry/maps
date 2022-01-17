@@ -1,10 +1,12 @@
 let WIDTH = 800, HEIGHT = 800;
 const SHOWTIME = false;
 const GUESS_CLASS_NAMES = ["guess-correct", "guess-one", "guess-two", "guess-wrong"];
-const DATASET = "LVP_SUB";
+const DATASET = "RPK_PRECINCTS";
 
 // UI & Page elements
-let svg, g, tooltip, guessText, timeText;
+let quiz = d3.select("#quiz");
+let svg, g_elements, g_labels, tooltip, guessText, timeText;
+let path;
 
 // Quiz Data
 let propName = undefined;
@@ -79,15 +81,33 @@ const updateSize = (width, height) => {
     svg.attr("width", width).attr("height", height);
 }
 
+const createLabel = (f, name) => {
+    // Make label appear
+    let label = g_labels.append("text").text(name).attr('class', 'element-label');
+    
+    // Centre it on the element
+    let [labelX, labelY] = path.centroid(f);
+    console.log(labelX, labelY);
+
+    // get its computed size
+    let w = label.node().getBBox().width;
+    let h = label.node().getBBox().height;
+    console.log(w, h) 
+    label.attr('x', labelX - w/2).attr('y', labelY + h/2); // centre it slightly better
+
+    setTimeout(() => label.remove(), 2000); // make it disappear after 2 seconds
+}
+
 const onClick = (e) => {
     // Only left clicks count as clicks.
     if(e.button !== 0) return;
-
-    const guess = e.path[0].__data__.properties[propName];
+    const feature = e.path[0].__data__;
+    const guess = feature.properties[propName];
+    
     // Correct guess
     if(guess === currentItemName) {
         // Update class of path
-        e.path[0].classList.add(GUESS_CLASS_NAMES[incorrectAttempts]);
+        e.path[0].classList.add(GUESS_CLASS_NAMES[incorrectAttempts > 3 ? 3 : incorrectAttempts]);
         incorrectAttempts = 0;
         flashingAnswer = false;
         guessedItems++;
@@ -99,12 +119,12 @@ const onClick = (e) => {
     }
     // Clicked on an element that has already been selected
     else if(!remainingItems.includes(guess)) {
-        console.log("That's " + guess);
+        createLabel(feature, guess);
     }
     // Incorrect guess
     else {
+        createLabel(feature, guess);
         console.log("WRONG, FUCKER! THAT WAS " + guess);
-        currentItemElement = svg.selectAll("path").nodes().find(f => f.__data__.properties[propName] === currentItemName);
         
         guessCount++;
         incorrectGuessesTotal++;
@@ -114,6 +134,7 @@ const onClick = (e) => {
         
         // Start flashing!!
         if (incorrectAttempts === 3 && !flashingAnswer) {
+            currentItemElement = svg.selectAll("path").nodes().find(f => f.__data__.properties[propName] === currentItemName);
             flashingAnswer = true;
 
             let flash = () => currentItemElement.classList.toggle(GUESS_CLASS_NAMES[3]);
@@ -156,8 +177,9 @@ const onMouseMove = (e) => {
 };
 
 const onKeyDown = (e) => {
-    // Alt+R
-    if(e.altKey && e.keyCode === 82) resetQuiz();
+    // R
+    if(e.keyCode === 82) resetQuiz();
+    // F
     else if(e.keyCode === 70) {
         if(fullscreen) updateSize(800, 800);
         else updateSize(quiz.node().getBoundingClientRect().width, quiz.node().getBoundingClientRect().height);
@@ -184,33 +206,37 @@ const setupQuiz = (geoJSON) => {
     
     // Do math
     var projection = geoJSON.metadata.projection === "mercator" ? d3.geoMercator() : d3.geoEquirectangular();
-    var geoGenerator = d3.geoPath().projection(projection);
+    path = d3.geoPath().projection(projection);
     projection.fitSize([WIDTH, HEIGHT], geoJSON);
 
     // Setup the svg element
-    quiz = d3.select("#quiz");
     svg = quiz.append("svg").attr("width", WIDTH).attr("height", HEIGHT);
-    g = svg.append("g");
+    g_elements = svg.append("g").attr("class", "elements");
+    g_labels = svg.append("g").attr("class", "labels");
     guessText = svg.append("text").attr('id', 'guess-text').attr('x', 50).attr('y', 50);
     tooltip = svg.append("text").attr('id', 'tooltip').attr('y', -160);
     timeText = svg.append("text").attr('id', 'time-text').attr('x', WIDTH-80).attr('y', 50);
 
     // Elements
-    g.selectAll("path")
+    g_elements.selectAll("path")
         .data(geoJSON.features)
         .enter()
         .append('path')
-        .attr('d', geoGenerator)
+        .attr('d', path)
+        // .on('click', onClick);
         .on('mousedown', onClick);
 
     // Handle zooming and panning
     svg.call(d3.zoom()
         .on('zoom', (e) => {
-            g.attr('transform', e.transform);
+            g_elements.attr('transform', e.transform);
+            
+            g_labels.attr('transform', e.transform);
             onMouseMove(e);
         })
         // Only zoom with middle mouse, only pan with left click. Not sure if this is wanted
-        .filter((e) => e.type === "wheel" ? e.button === 0 : e.button === 1)
+        .filter((e) => e.button === 0)
+        // .filter((e) => e.type === "wheel" ? e.button === 0 : e.button === 1)
     );
 
     svg.on("dblclick.zoom", null) // no double click to zoom
@@ -222,8 +248,10 @@ const setupQuiz = (geoJSON) => {
     resetQuiz();
 };
 
+let loading = quiz.append("p").text("Loading...");
+
 // Get dataset and setup quiz
-d3.json(`http://localhost:3000/${DATASET}.geojson`).then(setupQuiz);
+d3.json(`./${DATASET}.geojson`).then(setupQuiz).then(() => loading.remove());
 
 // Helper functions
 function formatTime(ms, includeMillis=false) {

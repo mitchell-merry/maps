@@ -1,7 +1,7 @@
 let WIDTH = 800, HEIGHT = 800;
 const SHOWTIME = false;
 const GUESS_CLASS_NAMES = ["guess-correct", "guess-one", "guess-two", "guess-wrong"];
-const DATASET = "RPK_PRECINCTS";
+const DATASET = "2021_ELB_region.geojson";
 
 // UI & Page elements
 let quiz = d3.select("#quiz");
@@ -235,7 +235,7 @@ const setupQuiz = (geoJSON) => {
             onMouseMove(e);
         })
         // Only zoom with middle mouse, only pan with left click. Not sure if this is wanted
-        .filter((e) => e.button === 0)
+        .filter((e) => e.button === 0 || e.button === 1)
         // .filter((e) => e.type === "wheel" ? e.button === 0 : e.button === 1)
     );
 

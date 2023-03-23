@@ -1,7 +1,7 @@
 let WIDTH = 800, HEIGHT = 800;
 const SHOWTIME = false;
 const GUESS_CLASS_NAMES = ["guess-correct", "guess-one", "guess-two", "guess-wrong"];
-const DATASET = "2021_ELB_region.geojson";
+const DATASET = "2021_ELB_region";
 
 // UI & Page elements
 let quiz = d3.select("#quiz");
@@ -101,7 +101,7 @@ const createLabel = (f, name) => {
 const onClick = (e) => {
     // Only left clicks count as clicks.
     if(e.button !== 0) return;
-    const feature = e.path[0].__data__;
+    const feature = e.target.__data__;
     const guess = feature.properties[propName];
     
     // Correct guess
